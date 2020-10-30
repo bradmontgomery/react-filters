@@ -4,14 +4,65 @@ function Select(props) {
     <option key={value} value={value}>{value}</option>
   );
   return (
-      <div class="control">
-        <div class="select">
+      <div className="control">
+        <div className="select">
             <select id={props.id} onChange={props.onChange} value={value}>
             {options}
           </select>
         </div>
       </div>
   );
+}
+
+// TODO: want a multi-select element that works kinda like select2 or chosenjs.
+// Working: INput element (search) + visible matching drop-down options.
+// TODO: We need some way to register & display the selected values.
+// TODO: need some way to set default selected values on creation.
+class MultiSelect extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            size: props.size ? props.size : 5,
+            options: props.options ? props.options : [],
+            values: props.values ? props.values : [], // selected values
+            search: "",
+        }
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        const val = e.target.value;
+        this.setState({search: val});
+    }
+
+    render() {
+        const visibleOptions = this.state.options.map((opt) => {
+            if(this.state.search && opt.startsWith(this.state.search)) {  // .startsWith not in all browsers.
+                return <a href="#" key={opt} className="dropdown-item">{opt}</a>
+            }
+        });
+        const isActive = visibleOptions.length > 0;
+
+        return (
+            <div className="control">
+                <div className={"dropdown" + (isActive ? " is-active" : "")}>
+                  <div className="dropdown-trigger">
+                    <div className="control" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <input className="input"
+                               type="text"
+                               placeholder="Search"
+                               onChange={this.handleChange} />
+                    </div>
+                  </div>
+                  <div className="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div className="dropdown-content">
+                        {isActive && visibleOptions}
+                    </div>
+                  </div>
+                </div>
+            </div>
+        );
+    }
 }
 
 
@@ -31,6 +82,7 @@ class App extends React.Component {
         year: ["", 2020, 2019, 2018],
         make: ["", "Honda", "Ford", "Cannondale"],
         model: ["", "T", "X", "CX", "ASDF"],
+        tags: ["", "bar", "bat", "baz", "biz", "bingo", "boingo"],
     }
   }
 
@@ -90,7 +142,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div class="field is-grouped">
+      <div className="field is-grouped">
         <Select id="year"
             onChange={this.handleYearChange}
             options={this.options.year}
@@ -103,6 +155,10 @@ class App extends React.Component {
             onChange={this.handleModelChange}
             options={this.options.model}
             value={this.state.model} />
+        <MultiSelect
+            id="tags"
+            options={this.options.tags}
+        />
       </div>
     );
   }
